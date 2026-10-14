@@ -1,0 +1,56 @@
+{
+    "timestamp": "2026-10-15 02:27:30",
+    "total_score": 379,
+    "total_darts_hit": 7,
+    "darts": [
+        {
+            "dart_index": 1,
+            "canonical_x": 209.31,
+            "canonical_y": 236.52,
+            "radial_distance_px": 50.59,
+            "score": 80
+        },
+        {
+            "dart_index": 2,
+            "canonical_x": 450.28,
+            "canonical_y": 244.82,
+            "radial_distance_px": 194.6,
+            "score": 4
+        },
+        {
+            "dart_index": 3,
+            "canonical_x": 342.19,
+            "canonical_y": 236.38,
+            "radial_distance_px": 88.4,
+            "score": 60
+        },
+        {
+            "dart_index": 4,
+            "canonical_x": 182.35,
+            "canonical_y": 201.71,
+            "radial_distance_px": 91.5,
+            "score": 60
+        },
+        {
+            "dart_index": 5,
+            "canonical_x": 228.65,
+            "canonical_y": 309.15,
+            "radial_distance_px": 59.77,
+            "score": 74
+        },
+        {
+            "dart_index": 6,
+            "canonical_x": 224.07,
+            "canonical_y": 126.34,
+            "radial_distance_px": 133.53,
+            "score": 38
+        },
+        {
+            "dart_index": 7,
+            "canonical_x": 320.13,
+            "canonical_y": 296.04,
+            "radial_distance_px": 75.61,
+            "score": 63
+        }
+    ]
+}

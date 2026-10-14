@@ -1,0 +1,355 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="dart_world">
+    <gravity>0 0 0</gravity>
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- Plugins -->
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster" />
+
+    <!-- GUI Camera: Spawns directly facing the board at close range -->
+    <gui fullscreen="0">
+      <camera name="user_camera">
+        <pose>0 -1.4 1.2 0 0 1.570796</pose>
+        <view_controller>orbit</view_controller>
+      </camera>
+    </gui>
+
+    <!-- Bright Front Lighting -->
+    <light type="directional" name="front_light">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 -3 2 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <direction>0 1 -0.2</direction>
+    </light>
+
+    <!-- Ground Floor -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal></plane></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- Dartboard Model Assembly -->
+    <model name="dartboard">
+      <pose>0 0 1.2 0 0 0</pose>
+
+      <link name="carriage_x">
+        <inertial><mass>0.5</mass><inertia><ixx>0.01</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.01</iyy><iyz>0</iyz><izz>0.01</izz></inertia></inertial>
+      </link>
+      <joint name="horizontal_joint" type="prismatic">
+        <parent>world</parent><child>carriage_x</child>
+        <axis><xyz>1 0 0</xyz><limit><lower>-1.0</lower><upper>1.0</upper><effort>1000000</effort></limit></axis>
+      </joint>
+
+      <link name="carriage_z">
+        <inertial><mass>0.5</mass><inertia><ixx>0.01</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.01</iyy><iyz>0</iyz><izz>0.01</izz></inertia></inertial>
+      </link>
+      <joint name="vertical_joint" type="prismatic">
+        <parent>carriage_x</parent><child>carriage_z</child>
+        <axis><xyz>0 0 1</xyz><limit><lower>-1.0</lower><upper>1.0</upper><effort>1000000</effort></limit></axis>
+      </joint>
+
+      <link name="target_board">
+        <pose>0 0 0 1.570796 0 0</pose>
+        <inertial><mass>0.5</mass><inertia><ixx>0.02</ixx><ixy>0</ixy><ixz>0</ixz><iyy>0.02</iyy><iyz>0</iyz><izz>0.02</izz></inertia></inertial>
+        <visual name="board_vis">
+          <geometry><box><size>0.6 0.6 0.02</size></box></geometry>
+          <material>
+            <ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse>
+            <pbr><metal><albedo_map>/home/jatin/dart_project/board.png</albedo_map></metal></pbr>
+          </material>
+        </visual>
+        <collision name="board_col"><geometry><box><size>0.6 0.6 0.02</size></box></geometry></collision>
+      </link>
+      <joint name="board_anchor" type="fixed"><parent>carriage_z</parent><child>target_board</child></joint>
+
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>horizontal_joint</joint_name><topic>/model/dartboard/joint/horizontal_joint/cmd_vel</topic>
+      </plugin>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>vertical_joint</joint_name><topic>/model/dartboard/joint/vertical_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_1_link">
+        <pose relative_to="target_board">0.03088 0.06310 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v1">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_1_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_1_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_1_joint</joint_name><topic>/model/dartboard/joint/dart_1_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_2_link">
+        <pose relative_to="target_board">-0.08843 -0.12246 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v2">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_2_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_2_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_2_joint</joint_name><topic>/model/dartboard/joint/dart_2_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_3_link">
+        <pose relative_to="target_board">0.01146 -0.13238 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v3">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_3_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_3_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_3_joint</joint_name><topic>/model/dartboard/joint/dart_3_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_4_link">
+        <pose relative_to="target_board">0.03268 -0.22789 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v4">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_4_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_4_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_4_joint</joint_name><topic>/model/dartboard/joint/dart_4_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_5_link">
+        <pose relative_to="target_board">0.03769 -0.09242 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v5">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_5_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_5_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_5_joint</joint_name><topic>/model/dartboard/joint/dart_5_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_6_link">
+        <pose relative_to="target_board">0.12350 0.14063 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v6">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_6_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_6_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_6_joint</joint_name><topic>/model/dartboard/joint/dart_6_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_7_link">
+        <pose relative_to="target_board">0.07108 0.09366 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v7">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_7_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_7_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_7_joint</joint_name><topic>/model/dartboard/joint/dart_7_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_8_link">
+        <pose relative_to="target_board">-0.05587 0.04067 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v8">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_8_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_8_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_8_joint</joint_name><topic>/model/dartboard/joint/dart_8_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_9_link">
+        <pose relative_to="target_board">0.16392 0.04641 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v9">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_9_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_9_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_9_joint</joint_name><topic>/model/dartboard/joint/dart_9_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_10_link">
+        <pose relative_to="target_board">-0.03673 -0.06660 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v10">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_10_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_10_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_10_joint</joint_name><topic>/model/dartboard/joint/dart_10_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_11_link">
+        <pose relative_to="target_board">0.17746 -0.09803 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v11">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_11_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_11_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_11_joint</joint_name><topic>/model/dartboard/joint/dart_11_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_12_link">
+        <pose relative_to="target_board">-0.12820 -0.11649 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v12">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_12_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_12_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_12_joint</joint_name><topic>/model/dartboard/joint/dart_12_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_13_link">
+        <pose relative_to="target_board">0.17517 0.10336 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v13">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_13_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_13_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_13_joint</joint_name><topic>/model/dartboard/joint/dart_13_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_14_link">
+        <pose relative_to="target_board">0.13545 -0.05490 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v14">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_14_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_14_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_14_joint</joint_name><topic>/model/dartboard/joint/dart_14_joint/cmd_vel</topic>
+      </plugin>
+
+      <link name="dart_15_link">
+        <pose relative_to="target_board">0.02781 -0.08950 -0.08 0 0 0</pose>
+        <inertial><mass>0.01</mass><inertia><ixx>1e-5</ixx><ixy>0</ixy><ixz>0</ixz><iyy>1e-5</iyy><iyz>0</iyz><izz>1e-5</izz></inertia></inertial>
+        <visual name="v15">
+          <geometry><cylinder><radius>0.016</radius><length>0.03</length></cylinder></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient><diffuse>0 1 0 1</diffuse><emissive>0 0.9 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <joint name="dart_15_joint" type="prismatic">
+        <parent>target_board</parent><child>dart_15_link</child>
+        <axis><xyz expressed_in="target_board">0 0 1</xyz><limit><lower>0.0</lower><upper>0.10</upper><effort>1000</effort></limit></axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+        <joint_name>dart_15_joint</joint_name><topic>/model/dartboard/joint/dart_15_joint/cmd_vel</topic>
+      </plugin>
+
+    </model>
+  </world>
+</sdf>
